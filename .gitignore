@@ -1,0 +1,7 @@
+.hg/
+.vs/
+GeminiConsole/bin/
+GeminiConsole/obj/
+SmolNetSharp/bin/
+SmolNetSharp/obj/
+.hgignore
