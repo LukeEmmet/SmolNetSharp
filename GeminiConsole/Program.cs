@@ -16,17 +16,19 @@ namespace GeminiConsole
             if (args.Length == 0)
             {
 
-                uri = new Uri("gemini://gemini.circumlunar.space");
-                uri = new Uri("gopher://gopher.floodgap.com");
-                // uri = new Uri("gopher://gopher.floodgap.com/0/gopher/wbgopher");
-                uri = new Uri("gopher://gopherpedia.com/0/Alpine%20newt");       //it seems %20s need to be converted back to spaces when talking to the server
+                //some test urls
+
+                //uri = new Uri("gemini://gemini.circumlunar.space");
+                //uri = new Uri("gopher://gopher.floodgap.com");
+                //uri = new Uri("gopher://gopher.floodgap.com/0/gopher/wbgopher");
+                //uri = new Uri("gopher://gopherpedia.com/0/Alpine%20newt");       //it seems %20s need to be converted back to spaces when talking to the server
                 //uri = new Uri("gopher://gopherpedia.com");       //this works
 
-                uri = new Uri("gopher://gopher.conman.org/1phlog.gopher");
-                uri = new Uri("gopher://gopher.conman.org/IPhlog:2020/11/03/vote-for-biden.jpg");
-                uri = new Uri("gemini://gemini.djinn.party/");
+                //uri = new Uri("gopher://gopher.conman.org/1phlog.gopher");
+                //uri = new Uri("gopher://gopher.conman.org/IPhlog:2020/11/03/vote-for-biden.jpg");
+                //uri = new Uri("gemini://gemini.djinn.party/");
+                //uri = new Uri("gemini://calcuode.com/gemlog/index.gmi");
                 uri = new Uri("gemini://gemini.circumlunar.space/docs/specification.gmi");
-                uri = new Uri("gemini://calcuode.com/gemlog/index.gmi");
 
                 Console.WriteLine("No url was passed - showing a default uri: " + uri.ToString());
             }
@@ -53,7 +55,7 @@ namespace GeminiConsole
                 switch (target.Scheme)
                 {
                     case "gemini":
-                        resp = Gemini.Fetch(target, 10, 1);
+                        resp = Gemini.Fetch(target);
                         break;
                     case "gopher":
                         resp = Gopher.Fetch(target);
