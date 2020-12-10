@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeminiConsole", "GeminiConsole\GeminiConsole.csproj", "{60E09F6C-3A1F-4F5A-90EF-1340892DEAB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeminiConsole", "GeminiConsole.csproj", "{60E09F6C-3A1F-4F5A-90EF-1340892DEAB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmolNetSharp", "SmolNetSharp\SmolNetSharp.csproj", "{DDF84841-1858-45A0-9DBB-58C76820DE9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmolNetSharp", "..\SmolNetSharp\SmolNetSharp.csproj", "{DDF84841-1858-45A0-9DBB-58C76820DE9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
