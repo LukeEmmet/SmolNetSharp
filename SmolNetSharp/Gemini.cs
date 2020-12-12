@@ -31,22 +31,51 @@ namespace SmolNetSharp.Protocols
         public string encoding { get; set; }
 
 
-        public GeminiResponse(List<byte> header,  Uri uri)
+        public GeminiResponse(Stream responseStream, Uri uri)
         {
-            this.codeMajor = (char)header[0];
-            this.codeMinor = (char)header[1];
+            byte[] statusText = { (byte)'4', (byte)'1' };
+            var statusBytes = responseStream.Read(statusText, 0, 2);
+            if (statusBytes != 2)
+            {
+                throw new Exception("malformed Gemini response - no status");
+            }
 
-            int metaStart = 2;
-            int metaEnd = header.IndexOf((byte)'\n') - 1;
-            byte[] metaraw = header.Skip(metaStart).Take(metaEnd).ToArray();
-            this.meta = Encoding.UTF8.GetString(metaraw.ToArray()).TrimStart();
+            var status = Encoding.UTF8.GetChars(statusText);
+            codeMajor = status[0];
+            codeMinor = status[1];
 
+
+            byte[] space = { 0 };
+            var spaceBytes = responseStream.Read(space, 0, 1);
+            if (spaceBytes != 1 || space[0] != (byte)' ')
+            {
+                throw new Exception("malformed Gemini response - missing space after status");
+            }
+
+            List<byte> metaBuffer = new List<byte>();
+            byte[] tempMetaBuffer = { 0 };
+            while (responseStream.Read(tempMetaBuffer, 0, 1) == 1 && tempMetaBuffer[0] != (byte)'\r')
+            {
+                metaBuffer.Add(tempMetaBuffer[0]);
+            }
+
+            var meta = Encoding.UTF8.GetString(metaBuffer.ToArray());
+
+            byte[] linefeedAfterMeta = { 0 };
+            var linefeedBytes = responseStream.Read(linefeedAfterMeta, 0, 1);
+            if (linefeedBytes != 1 || linefeedAfterMeta[0] != (byte)'\n')
+            {
+                throw new Exception("malformed Gemini response - missing carriage return line feed");
+            }
+
+            this.meta = meta;
             pyld = new List<byte>();
             this.mime = "text/gemini";      //as default, may be overridden later when we interpret the meta
             this.encoding = "UTF-8";
             this.uri = uri;
 
         }
+
 
         public override string ToString()
         {
@@ -95,33 +124,9 @@ namespace SmolNetSharp.Protocols
             byte[] buffer = new byte[2048];
             int bytes = -1;
 
-            GeminiResponse resp = new GeminiResponse();
 
-
-            //reader the stream character by character until we get all the header
-            //since we can't assume the first chunk would get all the header
-            List<byte> header = new List<byte>();
-            var byteRead = sslStream.Read(buffer, 0, 1);
-            while (byteRead != 0)
-            {
-                var character = buffer[0];
-                header.Add(character);
-                if (character == (byte)'\n')        //**TBD should really check for \r\n
-                {
-                    break;    
-                }
-                byteRead = sslStream.Read(buffer, 0, 1);
-            }
-
-            
-            if (header.Count <= 0)
-            {
-                throw new Exception(
-                    string.Format("Invalid Gemini protocol response - missing header")
-                );
-            }
-
-            resp = new GeminiResponse(header.ToList(), uri);  
+            //initialise and get the codes etc
+            GeminiResponse resp = new GeminiResponse(sslStream, uri);  
             
 
             //now read the rest of the stream, chunk by chunk.
@@ -216,6 +221,9 @@ namespace SmolNetSharp.Protocols
             finally {
                 sslStream.Close();
                 client.Close();
+
+                sslStream.Dispose();
+                client.Dispose();
             }
 
 
