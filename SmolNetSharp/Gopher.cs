@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.IO;
-using Serilog;
 using System.Linq;
-using System.Threading.Tasks;
 
 //A simple gopher client that returns the content and mime
 //based on Gemini.cs, but simplified for Gopher
@@ -169,7 +167,7 @@ namespace SmolNetSharp.Protocols
             try {
                 client = new TcpClient(hostURL.Host, port);
             } catch (Exception e) {
-                Log.Error(e, "Connection failure");
+                //Log.Error(e, "Connection failure");
                 throw e;
             }
 

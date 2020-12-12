@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
-using Serilog;
-using System.Text.RegularExpressions;
 using System.Linq;
-using System.Threading.Tasks;
 
 
 //originally based on Gemini C# library by InvisibleUp
@@ -107,12 +103,12 @@ namespace SmolNetSharp.Protocols
             if (sslPolicyErrors == SslPolicyErrors.None) { return true; }
             // Give a warning on self-signed certs, I guess
             if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) {
-                Log.Warning("Remote server is using self-signed certificate");
+                //Log.Warning("Remote server is using self-signed certificate");
                 return true;
             }
 
             // Do not allow this client to communicate with unauthenticated servers.
-            Log.Error("Certificate error: {0}", sslPolicyErrors);
+            //Log.Error("Certificate error: {0}", sslPolicyErrors);
             return false;
         }
 
@@ -173,7 +169,7 @@ namespace SmolNetSharp.Protocols
             try {
                 client = new TcpClient(hostURL.Host, port);
             } catch (Exception e) {
-                Log.Error(e, "Connection failure");
+                //Log.Error(e, "Connection failure");
                 throw e;
             }
 
@@ -189,7 +185,7 @@ namespace SmolNetSharp.Protocols
             try {
                 sslStream.AuthenticateAsClient(hostURL.Host);
             } catch (AuthenticationException e) {
-                Log.Error(e, "Authentication failure");
+                //Log.Error(e, "Authentication failure");
                 client.Close();
                 throw e;
             }
@@ -240,7 +236,6 @@ namespace SmolNetSharp.Protocols
                 case '4': // Temporary failure
                 case '5': // Permanent failure
                 case '6': // Client cert required
-                    Log.Error(resp.ToString());
                     resp.pyld = Encoding.UTF8.GetBytes(resp.ToString()).ToList();
                     break;
 
