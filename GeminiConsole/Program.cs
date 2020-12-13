@@ -7,6 +7,17 @@ namespace GeminiConsole
 {
     class Program
     {
+        static string InviteInput() {
+            Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("GeminiConsole app. Type exit to quit. ");
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.Write("Enter the Gemini or Gopher URL: ");
+            var userText = Console.ReadLine();
+            return (userText);
+        }
+
         static void Main(string[] args)
         {
 
@@ -14,29 +25,29 @@ namespace GeminiConsole
 
             if (args.Length == 0)
             {
+                var userText = InviteInput();
 
-                //some test urls
+                //basic interaction loop
+                while (userText != "exit" )
+                {
+                    try
+                    {
+                        uri = new Uri(userText);
+                        Navigate(uri);
+                    } catch (Exception err)
+                    {
+                        ReportIt("Error: " + err.Message);
+                    }
 
-                //uri = new Uri("gemini://gemini.circumlunar.space");
-                //uri = new Uri("gopher://gopher.floodgap.com");
-                //uri = new Uri("gopher://gopher.floodgap.com/0/gopher/wbgopher");
-                //uri = new Uri("gopher://gopherpedia.com/0/Alpine%20newt");       //it seems %20s need to be converted back to spaces when talking to the server
-                //uri = new Uri("gopher://gopherpedia.com");       //this works
-
-                //uri = new Uri("gopher://gopher.conman.org/1phlog.gopher");
-                //uri = new Uri("gopher://gopher.conman.org/IPhlog:2020/11/03/vote-for-biden.jpg");
-                //uri = new Uri("gemini://gemini.djinn.party/");
-                //uri = new Uri("gemini://calcuode.com/gemlog/index.gmi");
-                uri = new Uri("gemini://gemini.circumlunar.space/docs/specification.gmi");
-
-                Console.WriteLine("No url was passed - showing a default uri: " + uri.ToString());
+                    //ask again
+                    userText = InviteInput();
+               }
             }
             else
             {
                 uri = new Uri(args[0]);
+                Navigate(uri);
             }
-
-            var result =  Navigate(uri);
         }
 
 
@@ -60,7 +71,6 @@ namespace GeminiConsole
                         resp = Gopher.Fetch(target);
                         break;
                     default:
-                        Log.Error("Unknown URI scheme '{scheme}'", target.Scheme);
                         ReportIt(string.Format("Unknown URI scheme '{0}'", target.Scheme));
                         return false;
                 }

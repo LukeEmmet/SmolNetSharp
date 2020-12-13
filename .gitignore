@@ -5,3 +5,5 @@ GeminiConsole/obj/
 SmolNetSharp/bin/
 SmolNetSharp/obj/
 .hgignore
+/SmolNetSharp.Test/bin/Debug/netcoreapp3.1
+/SmolNetSharp.Test/obj
