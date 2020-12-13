@@ -156,7 +156,7 @@ namespace SmolNetSharp.Protocols
         }
 
         //default of 2Mb, 5 seconds. proxy string can be empty, meaning connect to host directly 
-        public static IResponse Fetch(Uri hostURL, string proxy, bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
+        public static IResponse Fetch(Uri hostURL, string proxy = "", bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
             int refetchCount = 0;
         Refetch:
