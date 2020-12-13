@@ -14,12 +14,22 @@ Include the SmolNet project or compiled library in your .NET solution.
 
 There are two classes Gemini.cs and Gopher.cs which let you fetch the content. They return the content as a byte array together with the MIME type.
 
+# Features
+
+* Client code for Gemini and Gopher, using a common abstraction
+* Ability to set a timeout to abandon long downloads
+* Ability to set a max size to abandon large downloads
+* Converts Gopher item types to mime types
+* Support for Gemini proxies
+
+Gophermaps are returned with type application/gopher-menu
+
 # Demo app
 
 There is a very simplistic test console app in the GeminiConsole folder
 
 # Acknowledgements
 
-The Gemini client class was extracted from TwinPeaks by InvisibleUp, although it has been updated and augmented since.
+The Gemini client class was initially extracted from TwinPeaks by InvisibleUp, but has been improved since.
 
 * see https://github.com/InvisibleUp/twinpeaks
