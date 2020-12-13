@@ -1,5 +1,4 @@
-﻿using Serilog;
-using System;
+﻿using System;
 using System.Text;
 using SmolNetSharp.Protocols;
 
@@ -20,7 +19,6 @@ namespace GeminiConsole
 
         static void Main(string[] args)
         {
-
             Uri uri;
 
             if (args.Length == 0)
@@ -39,8 +37,7 @@ namespace GeminiConsole
                         ReportIt("Error: " + err.Message);
                     }
 
-                    //ask again
-                    userText = InviteInput();
+                    userText = InviteInput();   //ask again
                }
             }
             else
@@ -81,10 +78,8 @@ namespace GeminiConsole
                 return false;
             }
 
-
             switch (resp.mime)
             {
-
                 case "text/gemini":
                 case "application/gopher-menu":
                 case "text/plain":
@@ -93,13 +88,11 @@ namespace GeminiConsole
                         {
                             var geminiResp = (GeminiResponse)resp;
                             ReportIt(geminiResp.meta);
-
                         }
 
                         string input = Encoding.UTF8.GetString(resp.pyld.ToArray());
 
                         ReportIt(input);
-
                         break;
                     }
 
@@ -107,7 +100,6 @@ namespace GeminiConsole
                     ReportIt("Some " + resp.mime + " content was received");
                     break;
             }
-
 
             return true;
         }
