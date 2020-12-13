@@ -85,7 +85,7 @@ namespace SmolNetSharp.Protocols
 
     // Significant portions of this code taken from
     // https://docs.microsoft.com/en-us/dotnet/api/system.net.security.sslstream
-    public class Gemini 
+    public class Gemini
     {
         private static Hashtable certificateErrors = new Hashtable();
         const int DefaultPort = 1965;
@@ -112,6 +112,18 @@ namespace SmolNetSharp.Protocols
             return false;
         }
 
+
+        public static bool AlwaysAccept(
+             object sender,
+             X509Certificate certificate,
+             X509Chain chain,
+             SslPolicyErrors sslPolicyErrors
+       )
+        {
+            return true;
+        }
+
+
         static GeminiResponse ReadMessage(SslStream sslStream, Uri uri, int maxSize)
         {
             // Read the  message sent by the server.
@@ -122,8 +134,8 @@ namespace SmolNetSharp.Protocols
 
 
             //initialise and get the codes etc
-            GeminiResponse resp = new GeminiResponse(sslStream, uri);  
-            
+            GeminiResponse resp = new GeminiResponse(sslStream, uri);
+
 
             //now read the rest of the stream, chunk by chunk.
             bytes = sslStream.Read(buffer, 0, buffer.Length);
@@ -143,8 +155,8 @@ namespace SmolNetSharp.Protocols
             return resp;
         }
 
-        //default of 2Mb, 5 seconds 
-        public static IResponse Fetch(Uri hostURL, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
+        //default of 2Mb, 5 seconds. proxy string can be empty, meaning connect to host directly 
+        public static IResponse Fetch(Uri hostURL, string proxy, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
             int refetchCount = 0;
         Refetch:
@@ -159,36 +171,61 @@ namespace SmolNetSharp.Protocols
             }
             refetchCount += 1;
 
+
+            var serverHost = hostURL.Host;
+
             // Set remote port
             int port = hostURL.Port;
             if (port == -1) { port = DefaultPort; }
+
+
+            if (proxy.Length > 0)
+            {
+                var proxySplit = proxy.Split(':');
+                serverHost = proxySplit[0];
+                port = int.Parse(proxySplit[1]);
+            }
+
 
             // Create a TCP/IP client socket.
             // machineName is the host running the server application.
             TcpClient client;
             try {
-                client = new TcpClient(hostURL.Host, port);
+                client = new TcpClient(serverHost, port);
             } catch (Exception e) {
                 //Log.Error(e, "Connection failure");
                 throw e;
             }
 
+            //by default we validate against the certificate
+            RemoteCertificateValidationCallback callback = new RemoteCertificateValidationCallback(ValidateServerCertificate);
+
+            //but dont validate connection to proxy for now **FIXME
+            if (proxy.Length > 0)
+            {
+                callback = new RemoteCertificateValidationCallback(AlwaysAccept);
+            }
+          
             // Create an SSL stream that will close the client's stream.
             SslStream sslStream = new SslStream(
                 client.GetStream(),
                 false,
-                new RemoteCertificateValidationCallback(ValidateServerCertificate),
+                callback,
                 null
             );
 
-            // The server name must match the name on the server certificate.
-            try {
-                sslStream.AuthenticateAsClient(hostURL.Host);
-            } catch (AuthenticationException e) {
+
+            try
+            {
+                sslStream.AuthenticateAsClient(serverHost);
+            }
+            catch (AuthenticationException e)
+            {
                 //Log.Error(e, "Authentication failure");
                 client.Close();
                 throw e;
             }
+            
 
             // Gemini request format: URI\r\n
             byte[] messsage = Encoding.UTF8.GetBytes(hostURL.ToString() + "\r\n");
