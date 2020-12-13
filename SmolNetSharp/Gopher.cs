@@ -43,7 +43,7 @@ namespace SmolNetSharp.Protocols
     {
         const int DefaultPort = 70;
 
-        static  GopherResponse ReadMessage(Stream stream, Uri uri)
+        static  GopherResponse ReadMessage(Stream stream, Uri uri, int maxSize, int abandonAfterSeconds)
         {
             // Read the  message sent by the server.
             // The end of the message is signaled using the
@@ -51,12 +51,25 @@ namespace SmolNetSharp.Protocols
             byte[] buffer = new byte[2048];
             int bytes = -1;
 
+            var abandonTime = DateTime.Now.AddSeconds((double)abandonAfterSeconds);
+            var maxSizeBytes = maxSize * 1024;      //Kb to Bytes
+
             bytes = stream.Read(buffer, 0, buffer.Length);
             GopherResponse resp = new GopherResponse(buffer.ToList(), bytes, uri);
 
             while (bytes != 0) {
                 bytes =  stream.Read(buffer, 0, buffer.Length);
                 resp.pyld.AddRange(buffer.Take(bytes));
+
+                if (resp.pyld.Count > maxSizeBytes)
+                {
+                    throw new Exception("Abort due to resource exceeding max size (" + maxSize + "Kb)");
+                }
+
+                if (DateTime.Now >= abandonTime)
+                {
+                    throw new Exception("Abort due to resource exceeding time limit (" + abandonAfterSeconds + " seconds)");
+                }
             }
 
             return resp;
@@ -156,7 +169,7 @@ namespace SmolNetSharp.Protocols
         }
 
 
-        public  static IResponse Fetch(Uri hostURL)
+        public  static IResponse Fetch(Uri hostURL, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
             // Set remote port
             int port = hostURL.Port;
@@ -192,7 +205,7 @@ namespace SmolNetSharp.Protocols
             stream.Write(messsage, 0, messsage.Count());
             stream.Flush();
             // Read message from the server.
-            GopherResponse resp = ReadMessage(stream, hostURL);
+            GopherResponse resp = ReadMessage(stream, hostURL, abandonReadSizeKb, abandonReadTimeS);
             // Close the client connection.
             client.Close();
 
