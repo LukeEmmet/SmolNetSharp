@@ -153,7 +153,7 @@ namespace SmolNetSharp.Protocols
 
                 if (DateTime.Now >= abandonTime)
                 {
-                    throw new Exception("Abort due to download time exceeding (" + abandonAfterSeconds + " seconds)");
+                    throw new Exception("Abort due to resource exceeding time limit (" + abandonAfterSeconds + " seconds)");
                 }
             }
 
@@ -238,7 +238,7 @@ namespace SmolNetSharp.Protocols
             GeminiResponse resp = new GeminiResponse();
             try
             {
-                sslStream.ReadTimeout = abandonReadTimeS;
+                sslStream.ReadTimeout = abandonReadTimeS * 1000;    //sslStream timeout is in MS
 
                 sslStream.Write(messsage, 0, messsage.Count());
                 sslStream.Flush();
