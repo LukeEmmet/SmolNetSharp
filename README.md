@@ -16,13 +16,14 @@ There are two classes Gemini.cs and Gopher.cs which let you fetch the content. T
 
 # Features
 
-* Client code for Gemini and Gopher, using a common abstraction
+* Client code for Gemini and Gopher, using a common interface
 * Ability to set a timeout to abandon long downloads
 * Ability to set a max size to abandon large downloads
 * Converts Gopher item types to mime types
 * Support for Gemini proxies
+* Compiles on Windows and probably Linux too (since .NET Core, but not not tested on Linux yet)
 
-Gophermaps are returned with type application/gopher-menu
+Gophermaps are returned with type application/gopher-menu.
 
 # Demo app
 
