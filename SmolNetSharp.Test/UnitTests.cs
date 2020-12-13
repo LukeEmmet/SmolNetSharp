@@ -9,7 +9,7 @@ namespace SmolNetSharp.Test
     public class UnitTests
     {
 
-        //some test urls
+        //some test urls - convert into test cases
 
         //uri = new Uri("gemini://gemini.circumlunar.space");
         //uri = new Uri("gopher://gopher.floodgap.com");
