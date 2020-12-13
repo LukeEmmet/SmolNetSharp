@@ -156,7 +156,7 @@ namespace SmolNetSharp.Protocols
         }
 
         //default of 2Mb, 5 seconds. proxy string can be empty, meaning connect to host directly 
-        public static IResponse Fetch(Uri hostURL, string proxy, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
+        public static IResponse Fetch(Uri hostURL, string proxy, bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
             int refetchCount = 0;
         Refetch:
@@ -200,8 +200,8 @@ namespace SmolNetSharp.Protocols
             //by default we validate against the certificate
             RemoteCertificateValidationCallback callback = new RemoteCertificateValidationCallback(ValidateServerCertificate);
 
-            //but dont validate connection to proxy for now **FIXME
-            if (proxy.Length > 0)
+            //if explicitly instructed always accespt the certificate
+            if (insecure)
             {
                 callback = new RemoteCertificateValidationCallback(AlwaysAccept);
             }
