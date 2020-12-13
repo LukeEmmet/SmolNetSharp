@@ -265,6 +265,7 @@ namespace SmolNetSharp.Protocols
                 case '1': // Text input
                     break;
                 case '2': // OK
+                    resp.mime = resp.meta;      //set the mime as the meta response
                     break;
                 case '3': // Redirect
                     hostURL = new Uri(resp.meta);

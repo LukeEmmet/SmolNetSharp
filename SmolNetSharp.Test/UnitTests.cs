@@ -33,9 +33,19 @@ namespace SmolNetSharp.Test
            
             GeminiResponse resp = (GeminiResponse)Gemini.Fetch(uri);
 
-            Assert.AreEqual(resp.codeMajor, '2');
+            Assert.AreEqual( '2', resp.codeMajor);
             Assert.IsTrue(resp.mime.StartsWith("text/gemini"));
 
+
+        }
+
+        [TestMethod]
+        public void TestImage()
+        {
+            GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
+                new Uri("gemini://gemini.marmaladefoo.com/geminaut/gus_home.png")
+            );
+            Assert.AreEqual("image/png", resp.mime);
 
         }
 
