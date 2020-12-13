@@ -124,7 +124,7 @@ namespace SmolNetSharp.Protocols
         }
 
 
-        static GeminiResponse ReadMessage(SslStream sslStream, Uri uri, int maxSize)
+        static GeminiResponse ReadMessage(SslStream sslStream, Uri uri, int maxSize, int abandonAfterSeconds)
         {
             // Read the  message sent by the server.
             // The end of the message is signaled using the
@@ -132,7 +132,7 @@ namespace SmolNetSharp.Protocols
             byte[] buffer = new byte[2048];
             int bytes = -1;
 
-
+            var abandonTime = DateTime.Now.AddSeconds((double)abandonAfterSeconds);
             //initialise and get the codes etc
             GeminiResponse resp = new GeminiResponse(sslStream, uri);
 
@@ -149,6 +149,11 @@ namespace SmolNetSharp.Protocols
                 if (resp.pyld.Count > maxSizeBytes)
                 {
                     throw new Exception("Abort due to resource exceeding max size (" + maxSize + "Kb)");
+                }
+
+                if (DateTime.Now >= abandonTime)
+                {
+                    throw new Exception("Abort due to download time exceeding (" + abandonAfterSeconds + " seconds)");
                 }
             }
 
@@ -233,12 +238,12 @@ namespace SmolNetSharp.Protocols
             GeminiResponse resp = new GeminiResponse();
             try
             {
-                sslStream.ReadTimeout = abandonReadTimeS * 1000;     //seconds to MS
+                sslStream.ReadTimeout = abandonReadTimeS;
 
                 sslStream.Write(messsage, 0, messsage.Count());
                 sslStream.Flush();
                 // Read message from the server.
-                resp = ReadMessage(sslStream, hostURL, abandonReadSizeKb);
+                resp = ReadMessage(sslStream, hostURL, abandonReadSizeKb, abandonReadTimeS);
                 
                 
                 // Close the client connection.

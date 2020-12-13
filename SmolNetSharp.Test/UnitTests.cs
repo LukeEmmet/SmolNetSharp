@@ -40,6 +40,47 @@ namespace SmolNetSharp.Test
         }
 
         [TestMethod]
+        public void TestTimeout()
+        {
+            try
+            {
+            //this should abort before concluding
+                GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
+                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), "", false, 20480, 1
+            );
+
+            } catch(Exception err)
+            {
+                Assert.AreEqual(true, err.Message.Length > 0);
+                return;
+            }
+
+            Assert.Fail("Should abort download after 1 second, but did not");
+        
+        }
+
+        [TestMethod]
+        public void TestAbortSize()
+        {
+            try
+            {
+                //this should abort before concluding
+                GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
+                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), "", false, 900, 10
+            );
+
+            }
+            catch (Exception err)
+            {
+                Assert.AreEqual(true, err.Message.Length > 0);
+                return;
+            }
+
+            Assert.Fail("Should abort download after 900kb, but did not");
+
+        }
+
+        [TestMethod]
         public void TestImage()
         {
             GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
