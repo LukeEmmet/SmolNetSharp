@@ -21,7 +21,7 @@ There are two classes Gemini.cs and Gopher.cs which let you fetch the content. T
 * Ability to set a max size to abandon large downloads
 * Converts Gopher item types to mime types
 * Support for Gemini proxies
-* Compiles on Windows and probably Linux too (since .NET Core, but not not tested on Linux yet)
+* Compiles on Windows and Linux too (since .NET Core)
 
 Gophermaps are returned with type application/gopher-menu.
 
@@ -31,6 +31,7 @@ There is a very simplistic test console app in the GeminiConsole folder
 
 # Acknowledgements
 
-The Gemini client class was initially extracted from TwinPeaks by InvisibleUp, but has been improved since.
+The Gemini client class was initially extracted from TwinPeaks by InvisibleUp, but has been improved since. Also some ideas from BoringCactus Gemini client
 
-* see https://github.com/InvisibleUp/twinpeaks
+* https://github.com/InvisibleUp/twinpeaks
+* https://git.sr.ht/~boringcactus/dotnet-gemini
