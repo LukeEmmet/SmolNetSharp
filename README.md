@@ -22,6 +22,7 @@ There are two classes Gemini.cs and Gopher.cs which let you fetch the content. T
 * Converts Gopher item types to mime types
 * Support for Gemini proxies
 * Support for the Nimigem protocol - a complementary content submission protocol to work with Gemini (experimental)
+* Support client certificates - e.g. loaded from PFX files
 * Compiles on Windows and Linux too (since .NET Core)
 
 Gophermaps are returned with type application/gopher-menu.
