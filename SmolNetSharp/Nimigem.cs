@@ -10,13 +10,10 @@ using System.IO;
 using System.Linq;
 
 
-//originally based on Gemini C# library by InvisibleUp
-//https://github.com/InvisibleUp/twinpeaks/tree/master/TwinPeaks/Protocols
-//but has been enhanced since to accomodate timeouts and some bugs fixed
-//also simplified to be a synchronous client not async
+//derived from Gemini.cs
 namespace SmolNetSharp.Protocols
 {
-    public struct GeminiResponse : IResponse
+    public struct NimigemResponse : IResponse
     {
         public char codeMajor;
         public char codeMinor;
@@ -27,13 +24,13 @@ namespace SmolNetSharp.Protocols
         public string encoding { get; set; }
 
 
-        public GeminiResponse(Stream responseStream, Uri uri)
+        public NimigemResponse(Stream responseStream, Uri uri)
         {
             byte[] statusText = { (byte)'4', (byte)'1' };
             var statusBytes = responseStream.Read(statusText, 0, 2);
             if (statusBytes != 2)
             {
-                throw new Exception("malformed Gemini response - no status");
+                throw new Exception("malformed Nimigem response - no status");
             }
 
             var status = Encoding.UTF8.GetChars(statusText);
@@ -45,14 +42,13 @@ namespace SmolNetSharp.Protocols
             var spaceBytes = responseStream.Read(space, 0, 1);
             if (spaceBytes != 1 || space[0] != (byte)' ')
             {
-                throw new Exception("malformed Gemini response - missing space after status");
+                throw new Exception("malformed Nimigem header - missing space after status");
             }
 
             List<byte> metaBuffer = new List<byte>();
             byte[] tempMetaBuffer = { 0 };
             byte currentChar;
-            while (responseStream.Read(tempMetaBuffer, 0, 1) == 1)
-            {
+            while (responseStream.Read(tempMetaBuffer, 0, 1) == 1) {
                 currentChar = tempMetaBuffer[0];
 
                 //to debug raw content
@@ -66,9 +62,9 @@ namespace SmolNetSharp.Protocols
 
                     //Console.WriteLine("byte: " + (int)currentChar + ": {" + Encoding.UTF8.GetString(tempMetaBuffer) + "}");
 
-                    if (currentChar != (byte)'\n')
+                    if (currentChar != (byte) '\n')
                     {
-                        throw new Exception("malformed Gemini header - missing LF after CR");
+                        throw new Exception("malformed Nimigem header - missing LF after CR");
                     }
                     break;      //no more header processing
                 }
@@ -100,7 +96,7 @@ namespace SmolNetSharp.Protocols
 
     // Significant portions of this code taken from
     // https://docs.microsoft.com/en-us/dotnet/api/system.net.security.sslstream
-    public class Gemini
+    public class Nimigem
     {
         private static Hashtable certificateErrors = new Hashtable();
         const int DefaultPort = 1965;
@@ -139,7 +135,7 @@ namespace SmolNetSharp.Protocols
         }
 
 
-        static GeminiResponse ReadMessage(SslStream sslStream, Uri uri, int maxSize, int abandonAfterSeconds)
+        static NimigemResponse ReadMessage(SslStream sslStream, Uri uri, int maxSize, int abandonAfterSeconds)
         {
             // Read the  message sent by the server.
             // The end of the message is signaled using the
@@ -149,7 +145,7 @@ namespace SmolNetSharp.Protocols
 
             var abandonTime = DateTime.Now.AddSeconds((double)abandonAfterSeconds);
             //initialise and get the codes etc
-            GeminiResponse resp = new GeminiResponse(sslStream, uri);
+            NimigemResponse resp = new NimigemResponse(sslStream, uri);
 
 
             //now read the rest of the stream, chunk by chunk.
@@ -175,10 +171,19 @@ namespace SmolNetSharp.Protocols
             return resp;
         }
 
-
         //default of 2Mb, 5 seconds. proxy string can be empty, meaning connect to host directly 
-        public static IResponse Fetch(Uri hostURL, X509Certificate2 clientCertificate = null, string proxy = "", bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
+        public static IResponse Fetch(Uri hostURL, X509Certificate2 clientCertificate = null, string payloadPlainText = "", string proxy = "", bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
+            var payload = "";
+
+            if (payloadPlainText.Length > 0) {
+                var payloadEncoder = new UriBuilder();
+                payloadEncoder.Path = payloadPlainText;
+                payload = payloadEncoder.Path;
+            } else
+            {
+                payload = "";
+            }
 
             int refetchCount = 0;
         Refetch:
@@ -236,7 +241,6 @@ namespace SmolNetSharp.Protocols
                 null
             );
 
-            //var certs = UseCert();
 
             try
             {
@@ -244,7 +248,8 @@ namespace SmolNetSharp.Protocols
                 {
                     sslStream.AuthenticateAsClient(serverHost);
 
-                } else
+                }
+                else
                 {
                     var certs = new X509CertificateCollection();
                     certs.Add(clientCertificate);
@@ -260,10 +265,12 @@ namespace SmolNetSharp.Protocols
             }
             
 
-            // Gemini request format: URI\r\n
-            byte[] messsage = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + "\r\n");
+            // Nimigem request format: URI<space>[payload]\r\n
+            //payload should be percentencoded
+            //space MUST NOT be percent encoded - a literal space to separate from the URL
+            byte[] messsage = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + " " + payload + "\r\n");
 
-            GeminiResponse resp = new GeminiResponse();
+            NimigemResponse resp = new NimigemResponse();
             try
             {
                 sslStream.ReadTimeout = abandonReadTimeS * 1000;    //sslStream timeout is in MS
@@ -296,17 +303,62 @@ namespace SmolNetSharp.Protocols
             // Determine what to do w/ that
             switch (resp.codeMajor) {
                 case '1': // Text input
-                    break;
+
+                    //consider this invalid nimigem for now
+                    throw new Exception(
+                        string.Format("Invalid Nimigem 1X response code {0}{1}", resp.codeMajor, resp.codeMinor)
+                    );
+
                 case '2': // OK
-                    resp.mime = resp.meta;      //set the mime as the meta response **TBD parse this into media type/encoding etc
+
+                    switch (resp.codeMinor)
+                    {
+                        case '5':
+                            //this is a nimigem extension - we expect to provide the URI on the meta
+                            //N.b. This is not the same as 3X redirect, which would trigger another request
+                            //instead this indicates success, but nimigem indicates URL as destination
+                            //of created asset or results page. this is a separate gemini
+                            //URL
+                            var successUri = new Uri(resp.meta);
+                            if (successUri.Scheme != "gemini")
+                            {
+                                //invalid meta - target must be gemini
+                                throw new Exception(
+                                    string.Format("Invalid Nimigem success, not a gemini target: {0}", resp.meta)
+                                );
+                            }
+
+                            //otherwise OK
+                            break;
+
+                        case '0':
+                        default:
+                            //invalid - success must provide gemini targed response for results
+                            throw new Exception(
+                                string.Format("Invalid Nimigem 2X response code {0}{1}", resp.codeMajor, resp.codeMinor)
+                            );
+                    }
+
+                    resp.mime = resp.meta;      //set the mime as the meta response
                     break;
                 case '3': // Redirect
                     hostURL = new Uri(resp.meta);
+
+                    //check the target is nimigem scheme for reposting to
+                    if (hostURL.Scheme != "nimigem")
+                    {
+                        //invalid meta - target must be nimigem
+                        throw new Exception(
+                            string.Format("Invalid Nimigem redirect, not a nimigem target: {0}", resp.meta)
+                        );
+                    }
                     goto Refetch;
 
                 case '4': // Temporary failure
                 case '5': // Permanent failure
                 case '6': // Client cert required
+                    
+                    //pass back to the client to provide one
                     resp.bytes = Encoding.UTF8.GetBytes(resp.ToString()).ToList();
                     break;
 

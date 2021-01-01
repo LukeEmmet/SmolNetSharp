@@ -15,7 +15,7 @@ namespace SmolNetSharp.Protocols
     public struct GopherResponse : IResponse
     {
 
-        public List<byte> pyld { get; set; }
+        public List<byte> bytes { get; set; }
         public string mime { get; set; }
         public string encoding { get; set; }
         public Uri uri { get; set; }
@@ -27,7 +27,7 @@ namespace SmolNetSharp.Protocols
             int pyldLen = bytes - pyldStart;
 
             byte[] metaraw = buffer.ToArray();
-            this.pyld = buffer.Skip(pyldStart).Take(pyldLen).ToList();
+            this.bytes = buffer.Skip(pyldStart).Take(pyldLen).ToList();
 
             //slightly fake approach - probably better to parse the path
             //and/or the selector
@@ -59,9 +59,9 @@ namespace SmolNetSharp.Protocols
 
             while (bytes != 0) {
                 bytes =  stream.Read(buffer, 0, buffer.Length);
-                resp.pyld.AddRange(buffer.Take(bytes));
+                resp.bytes.AddRange(buffer.Take(bytes));
 
-                if (resp.pyld.Count > maxSizeBytes)
+                if (resp.bytes.Count > maxSizeBytes)
                 {
                     throw new Exception("Abort due to resource exceeding max size (" + maxSize + "Kb)");
                 }

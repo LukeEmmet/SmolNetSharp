@@ -10,7 +10,7 @@ namespace SmolNetSharp.Protocols
 {
     public interface IResponse
     {
-        List<byte> pyld { get; }
+        List<byte> bytes { get; }
         string mime { get; }
         Uri uri { get; }
         string encoding { get; }
