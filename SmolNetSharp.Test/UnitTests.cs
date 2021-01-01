@@ -46,7 +46,7 @@ namespace SmolNetSharp.Test
             {
             //this should abort before concluding
                 GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
-                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), "", false, 20480, 1
+                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), null, "", false, 20480, 1
             );
 
             } catch(Exception err)
@@ -66,7 +66,7 @@ namespace SmolNetSharp.Test
             {
                 //this should abort before concluding
                 GeminiResponse resp = (GeminiResponse)Gemini.Fetch(
-                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), "", false, 900, 10
+                new Uri("gemini://park-city.club/ftp/invis/branding/roseknight_hq.gif"), null, "", false, 900, 10
             );
 
             }

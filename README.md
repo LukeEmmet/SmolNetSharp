@@ -21,6 +21,7 @@ There are two classes Gemini.cs and Gopher.cs which let you fetch the content. T
 * Ability to set a max size to abandon large downloads
 * Converts Gopher item types to mime types
 * Support for Gemini proxies
+* Support for the Nimigem protocol - a complementary content submission protocol to work with Gemini (experimental)
 * Compiles on Windows and Linux too (since .NET Core)
 
 Gophermaps are returned with type application/gopher-menu.
