@@ -152,12 +152,33 @@ namespace GeminiConsole
             if (target.Scheme == "gemini")
             {
                 var geminiResp = (GeminiResponse)resp;
-                ReportIt("Gemini response\n\t: " + geminiResp.codeMajor.ToString() + geminiResp.codeMinor.ToString() + " " + geminiResp.meta);
 
-            } else if (target.Scheme == "nimigem")
+                ReportIt("Gemini response");
+
+                if (resp.uri.AbsoluteUri != target.AbsoluteUri)
+                {
+                    //was redirected, let the user know
+                    ReportIt("\tredirected to: " + resp.uri.AbsoluteUri);
+                }
+
+                ReportIt("\theader: " + geminiResp.codeMajor.ToString() + geminiResp.codeMinor.ToString() + " " + geminiResp.meta);
+
+
+
+            }
+            else if (target.Scheme == "nimigem")
             {
                 var nimigemResp = (NimigemResponse)resp;
-                ReportIt("Nimigem response\n\t" + nimigemResp.codeMajor.ToString() + nimigemResp.codeMinor.ToString() + " " + nimigemResp.meta);
+
+                ReportIt("Nimigem response");
+
+                if (resp.uri.AbsoluteUri != target.AbsoluteUri)
+                {
+                    //was redirected, let the user know
+                    ReportIt("\tredirected to: " + resp.uri.AbsoluteUri);
+                }
+
+                ReportIt("\theader: " + nimigemResp.codeMajor.ToString() + nimigemResp.codeMinor.ToString() + " " + nimigemResp.meta);
 
                 switch (nimigemResp.codeMajor)
                 {
@@ -175,6 +196,7 @@ namespace GeminiConsole
                                 break;
 
                             default:
+                                //should be raised as an error from smolnetsharp, but handle it anyway
                                 ReportIt(String.Format("\tInvalid Nimigem 2X success code {0}{1}: No other success responses are permitted than 25",
                                     nimigemResp.codeMajor, nimigemResp.codeMinor));
                                 break;
