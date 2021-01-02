@@ -301,7 +301,27 @@ namespace SmolNetSharp.Protocols
                     resp.mime = resp.meta;      //set the mime as the meta response **TBD parse this into media type/encoding etc
                     break;
                 case '3': // Redirect
-                    hostURL = new Uri(resp.meta);
+
+                    Uri redirectUri;
+
+                    if (resp.meta.Contains("://"))
+                    {
+                        //a full url
+                        redirectUri = new Uri(resp.meta);
+                    }
+                    else
+                    {
+                        redirectUri = new Uri(hostURL, resp.meta);
+                    }
+
+                    if (redirectUri.Scheme != hostURL.Scheme)
+                    {
+                        //invalid meta - target must be same scheme as source
+                        throw new Exception("Cannot redirect to a URI with a different scheme: " + redirectUri.Scheme);
+                    }
+
+                    hostURL = redirectUri;
+
                     goto Refetch;
 
                 case '4': // Temporary failure

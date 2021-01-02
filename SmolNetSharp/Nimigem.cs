@@ -342,16 +342,27 @@ namespace SmolNetSharp.Protocols
                     resp.mime = resp.meta;      //set the mime as the meta response
                     break;
                 case '3': // Redirect
-                    hostURL = new Uri(resp.meta);
 
-                    //check the target is nimigem scheme for reposting to
-                    if (hostURL.Scheme != "nimigem")
+                    Uri redirectUri;
+
+                    if (resp.meta.Contains("://"))
                     {
-                        //invalid meta - target must be nimigem
-                        throw new Exception(
-                            string.Format("Invalid Nimigem redirect, not a nimigem target: {0}", resp.meta)
-                        );
+                        //a full url
+                        redirectUri = new Uri(resp.meta);
                     }
+                    else
+                    {
+                        redirectUri = new Uri(hostURL, resp.meta);
+                    }
+
+                    if (redirectUri.Scheme != hostURL.Scheme)
+                    {
+                        //invalid meta - target must be same scheme as source
+                        throw new Exception("Cannot redirect to a URI with a different scheme: " + redirectUri.Scheme);
+                    }
+
+                    hostURL = redirectUri;
+
                     goto Refetch;
 
                 case '4': // Temporary failure
