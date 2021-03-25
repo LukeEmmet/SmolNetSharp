@@ -13,6 +13,18 @@ using System.Linq;
 //derived from Gemini.cs
 namespace SmolNetSharp.Protocols
 {
+    public class NimigemRequest
+    {
+        public string mime;
+        public byte[] bytes;
+
+        public NimigemRequest()
+        {
+            mime = "text/plain";
+            bytes = Encoding.ASCII.GetBytes("");
+        }
+    }
+
     public struct NimigemResponse : IResponse
     {
         public char codeMajor;
@@ -172,18 +184,9 @@ namespace SmolNetSharp.Protocols
         }
 
         //default of 2Mb, 5 seconds. proxy string can be empty, meaning connect to host directly 
-        public static IResponse Fetch(Uri hostURL, X509Certificate2 clientCertificate = null, string payloadPlainText = "", string proxy = "", bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
+        public static IResponse Fetch(Uri hostURL, byte[] payload, string mime = "text/plain; charset=utf-8", X509Certificate2 clientCertificate = null,  string proxy = "", bool insecure = false, int abandonReadSizeKb = 2048, int abandonReadTimeS = 5)
         {
-            var payload = "";
-
-            if (payloadPlainText.Length > 0) {
-                var payloadEncoder = new UriBuilder();
-                payloadEncoder.Path = payloadPlainText;
-                payload = payloadEncoder.Path;
-            } else
-            {
-                payload = "";
-            }
+            
 
             int refetchCount = 0;
         Refetch:
@@ -265,17 +268,22 @@ namespace SmolNetSharp.Protocols
             }
             
 
-            // Nimigem request format: URI<space>[payload]\r\n
-            //payload should be percentencoded
-            //space MUST NOT be percent encoded - a literal space to separate from the URL
-            byte[] messsage = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + " " + payload + "\r\n");
+            // Nimigem request format: URI\r\n<datauri>\r\n
+            byte[] header = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + "\r\n");
+            byte[] message;
 
+            mime = mime.Replace(" ", "");       //normalise media type for URI
+            var encoded = "data:" + mime + ";base64," + Convert.ToBase64String(payload, Base64FormattingOptions.None) + "\r\n";
+            var payloadBytes = Encoding.UTF8.GetBytes(encoded);
+
+            message = header.Concat(payloadBytes).ToArray();
+            
             NimigemResponse resp = new NimigemResponse();
             try
             {
                 sslStream.ReadTimeout = abandonReadTimeS * 1000;    //sslStream timeout is in MS
 
-                sslStream.Write(messsage, 0, messsage.Count());
+                sslStream.Write(message, 0, message.Count());
                 sslStream.Flush();
                 // Read message from the server.
                 resp = ReadMessage(sslStream, hostURL, abandonReadSizeKb, abandonReadTimeS);

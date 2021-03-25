@@ -115,10 +115,18 @@ namespace SmolNetSharp.Protocols
               X509Chain chain,
               SslPolicyErrors sslPolicyErrors
         ) {
-            if (sslPolicyErrors == SslPolicyErrors.None) { return true; }
-            // Give a warning on self-signed certs, I guess
+            if (sslPolicyErrors == SslPolicyErrors.None) { 
+                return true; 
+            }
+
+            var expireDate = DateTime.Parse(certificate.GetExpirationDateString());
+            if (expireDate < DateTime.Now)
+            {
+                return false;
+            }
+
+            //self signed certificates are considered OK in Gemini
             if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) {
-                //Log.Warning("Remote server is using self-signed certificate");
                 return true;
             }
 

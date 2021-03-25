@@ -90,9 +90,9 @@ namespace GeminiConsole
                             if (payloadRaw.Length > 0)
                             {
                                 //encode the payload - for ease of user debugging (nimigem client actually does it as well)
-                                var payloadEncoder = new UriBuilder();
-                                payloadEncoder.Path = payloadRaw;
-                                Console.WriteLine("\nPayload, encoded: " + payloadEncoder.Path);
+                                //var payloadEncoder = new UriBuilder();
+                                //payloadEncoder.Path = payloadRaw;
+                                Console.WriteLine("\nPayload: " + payloadRaw);
                             }
                             Console.WriteLine("");
 
@@ -135,7 +135,7 @@ namespace GeminiConsole
                         resp = Gopher.Fetch(target);
                         break;
                     case "nimigem":
-                        resp = Nimigem.Fetch(target, cert, payload, "", insecure);
+                        resp = Nimigem.Fetch(target, Encoding.UTF8.GetBytes(payload), "text/plain", cert, "", insecure);
                         break;
                     default:
                         ReportIt(string.Format("Unknown URI scheme '{0}'", target.Scheme));
