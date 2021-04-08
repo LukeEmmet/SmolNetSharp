@@ -92,7 +92,10 @@ namespace SmolNetSharp.Protocols
             }
 
 
-
+            //was reviewed against this very useful summary of which selectors are actually found in the wild
+            //N.B. type i is never retrieved and type h normally specifies a URL, so again not directly retrieved
+            //https://sunriseprogrammer.blogspot.com/2019/03/directory-entry-says-what-current.html
+            
             switch (gopherType)
             {
                 case "1":
@@ -110,7 +113,9 @@ namespace SmolNetSharp.Protocols
                     res = "image/gif";
                     break;
                 case "4":
-                    res = "application/mac-binhex4";
+                case "5":
+                    //binhex and dos binaries
+                    //just stick to application/octet-stream
                     break;
                 case "I":
                 case "s":
