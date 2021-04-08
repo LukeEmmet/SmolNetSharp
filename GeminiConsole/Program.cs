@@ -15,7 +15,7 @@ namespace GeminiConsole
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("GeminiConsole app. Type exit to quit. ");
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            Console.Write("Enter the Gemini, Nimigem or Gopher URL: ");
+            Console.Write("Enter the Gemini or Gopher URL: ");
             var userText = Console.ReadLine();
             return (userText);
         }
@@ -71,7 +71,16 @@ namespace GeminiConsole
                     Console.WriteLine("Insecure mode - no checking of server certs");
                 }
 
-                var userText = InviteInput();
+                string userText;
+
+                if (commandLineApplication.RemainingArguments.Count > 0)
+                {
+                    userText = commandLineApplication.RemainingArguments[0].ToString();     //use the first one
+                } else
+                {
+                    userText = InviteInput();
+                }
+
                 var payload = "";
 
                 //basic interaction loop
@@ -145,6 +154,11 @@ namespace GeminiConsole
             catch (Exception e)
             {
                 ReportIt("Error loading page: " + e.Message);
+                if (e.InnerException != null)
+                {
+                    ReportIt("Inner exception: " + e.InnerException.Message);
+                    ReportIt(e.InnerException.StackTrace);
+                }
                 return false;
             }
 
