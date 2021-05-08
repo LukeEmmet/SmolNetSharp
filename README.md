@@ -8,6 +8,8 @@ Gemini and Gopher are small net protocols for sharing content on the Internet.
 
 SmolNetSharp is a .NET C# client library you can use to build your own Gemini or Gopher clients in .NET.
 
+Projects exist for .NET core and .NET framework.
+
 # Usage
 
 Include the SmolNet project or compiled library in your .NET solution.

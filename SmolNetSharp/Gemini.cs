@@ -141,7 +141,7 @@ namespace SmolNetSharp.Protocols
              X509Certificate certificate,
              X509Chain chain,
              SslPolicyErrors sslPolicyErrors
-       )
+        )
         {
             return true;
         }
@@ -158,7 +158,6 @@ namespace SmolNetSharp.Protocols
             var abandonTime = DateTime.Now.AddSeconds((double)abandonAfterSeconds);
             //initialise and get the codes etc
             GeminiResponse resp = new GeminiResponse(sslStream, uri);
-
 
             //now read the rest of the stream, chunk by chunk.
             bytes = sslStream.Read(buffer, 0, buffer.Length);
@@ -196,11 +195,8 @@ namespace SmolNetSharp.Protocols
                 throw new Exception(
                     string.Format("Too many redirects!")
                 );
-
-
             }
             refetchCount += 1;
-
 
             var serverHost = hostURL.Host;
 
@@ -208,14 +204,12 @@ namespace SmolNetSharp.Protocols
             int port = hostURL.Port;
             if (port == -1) { port = DefaultPort; }
 
-
             if (proxy.Length > 0)
             {
                 var proxySplit = proxy.Split(':');
                 serverHost = proxySplit[0];
                 port = int.Parse(proxySplit[1]);
             }
-
 
             // Create a TCP/IP client socket.
             // machineName is the host running the server application.
@@ -244,29 +238,15 @@ namespace SmolNetSharp.Protocols
                 null
             );
 
-            //var certs = UseCert();
-
-            try
-            {
-                if (clientCertificate == null)
-                {
-                    sslStream.AuthenticateAsClient(serverHost);
-
-                } else
-                {
-                    var certs = new X509CertificateCollection();
-                    certs.Add(clientCertificate);
-                    sslStream.AuthenticateAsClient(serverHost, certs, true);
-                }
-
+            var certs = new X509CertificateCollection();
+            if (clientCertificate != null) { 
+                certs.Add(clientCertificate);
             }
-            catch (AuthenticationException e)
-            {
-                //Log.Error(e, "Authentication failure");
-                client.Close();
-                throw e;
-            }
-            
+
+            //explicitly set tls version otherwise call will fail on windows 7. Changed from .net 4.61 to 4.7
+            //See following discussion
+            //https://github.com/dotnet/runtime/issues/23217
+            sslStream.AuthenticateAsClient(serverHost, certs, SslProtocols.Tls12, !insecure);
 
             // Gemini request format: URI\r\n
             byte[] messsage = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + "\r\n");
@@ -280,10 +260,6 @@ namespace SmolNetSharp.Protocols
                 sslStream.Flush();
                 // Read message from the server.
                 resp = ReadMessage(sslStream, hostURL, abandonReadSizeKb, abandonReadTimeS);
-                
-                
-                // Close the client connection.
-                //client.Close();
             }
             catch (Exception err)
             {
@@ -293,6 +269,7 @@ namespace SmolNetSharp.Protocols
                 
             }
             finally {
+                // Close the client connection.
                 sslStream.Close();
                 client.Close();
 

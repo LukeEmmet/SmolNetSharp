@@ -245,28 +245,17 @@ namespace SmolNetSharp.Protocols
             );
 
 
-            try
+            var certs = new X509CertificateCollection();
+            if (clientCertificate != null)
             {
-                if (clientCertificate == null)
-                {
-                    sslStream.AuthenticateAsClient(serverHost);
-
-                }
-                else
-                {
-                    var certs = new X509CertificateCollection();
-                    certs.Add(clientCertificate);
-                    sslStream.AuthenticateAsClient(serverHost, certs, true);
-                }
-
+                certs.Add(clientCertificate);
             }
-            catch (AuthenticationException e)
-            {
-                //Log.Error(e, "Authentication failure");
-                client.Close();
-                throw e;
-            }
-            
+
+            //explicitly set tls version otherwise call will fail on windows 7. Changed from .net 4.61 to 4.7
+            //See following discussion
+            //https://github.com/dotnet/runtime/issues/23217
+            sslStream.AuthenticateAsClient(serverHost, certs, SslProtocols.Tls12, !insecure);
+
 
             // Nimigem request format: URI\r\n<datauri>\r\n
             byte[] header = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + "\r\n");
