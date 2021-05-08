@@ -14,3 +14,6 @@ SmolNetSharp/SmolNetSharp.Net4Framework/bin/
 SmolNetSharp/SmolNetSharp.Net4Framework/obj/Debug/.NETFramework,Version=v4.8.AssemblyAttributes.cs
 SmolNetSharp/SmolNetSharp.Net4Framework/obj/
 GeminiConsole/GeminiConsole.Net4Framework/packages/
+GeminiConsole/Properties/launchSettings.json
+*.pfx
+*.p12
