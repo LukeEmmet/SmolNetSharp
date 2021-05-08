@@ -154,11 +154,10 @@ namespace GeminiConsole
             catch (Exception e)
             {
                 ReportIt("Error loading page: " + e.Message);
-                if (e.InnerException != null)
-                {
-                    ReportIt("Inner exception: " + e.InnerException.Message);
-                    ReportIt(e.InnerException.StackTrace);
-                }
+                ReportIt("Source: " + e.Source);
+                ReportIt("Target site: " + e.TargetSite);
+                ReportIt("Stack trace: " + e.StackTrace);
+
                 return false;
             }
 
@@ -240,7 +239,8 @@ namespace GeminiConsole
             //report the body for gemini and gopher only (nimigem has no response body)
             if (target.Scheme == "gemini" || target.Scheme == "gopher")
             {
-                switch (resp.mime)
+                //examine the first component of the media type up to any semi colon
+                switch (resp.mime.Split(';')[0].Trim())
                 {
                     case "text/gemini":
                     case "application/gopher-menu":
@@ -253,6 +253,7 @@ namespace GeminiConsole
                         }
 
                     default: // report the mime type only for now
+
                         ReportIt("Some " + resp.mime + " content was received");
                         break;
                 }
