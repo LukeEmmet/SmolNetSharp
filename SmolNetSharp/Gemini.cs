@@ -243,10 +243,21 @@ namespace SmolNetSharp.Protocols
                 certs.Add(clientCertificate);
             }
 
-            //explicitly set tls version otherwise call will fail on windows 7. Changed from .net 4.61 to 4.7
-            //See following discussion
-            //https://github.com/dotnet/runtime/issues/23217
-            sslStream.AuthenticateAsClient(serverHost, certs, SslProtocols.Tls12, !insecure);
+
+            var negotiateTo = SslProtocols.None; //default is to negotiate highest TLS
+
+            //on Windows, for anything older than windows 10, use TLS 1.2 explicitly
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) &&
+                System.Environment.OSVersion.Version.Major < 10)
+            {
+                //explicitly set tls version otherwise call will fail on windows 7. Changed from .net 4.61 to 4.7
+                //See following discussion
+                //https://github.com/dotnet/runtime/issues/23217
+                negotiateTo = SslProtocols.Tls12;
+            }
+
+            sslStream.AuthenticateAsClient(serverHost, certs, negotiateTo, !insecure);
+            
 
             // Gemini request format: URI\r\n
             byte[] messsage = Encoding.UTF8.GetBytes(hostURL.AbsoluteUri + "\r\n");
